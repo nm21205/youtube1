@@ -13,14 +13,11 @@ import VideoSearch from '../components/videos/VideoSearch'
 
 const Channel = () => {
   const {channelId} = useParams();//파라미터로 전달된 채널아이디를 저장
-  //console.log(channelId)
+  console.log(channelId)
   const [channelDetail, setChannelDetail] = useState();
   const [loading, setLoading] = useState(true);
   //영상 데이터 상태
   const [channelVideo, setChannelVideo] = useState([])
-
-  //다음영상의 토큰을 저장
-  const [nextPageToken, setNextPageToken] = useState(null);
 
   //channelId가 변경되면 채널아이디값에 해당하는 데이터를 불러오는 함수
   useEffect(() => {
@@ -30,11 +27,6 @@ const Channel = () => {
         const data = await fetchFromAPI(`channels?part=snippet&id=${channelId}`);
         console.log(data)
         setChannelDetail(data.items[0])
-        const videosData = await fetchFromAPI(`search?channelId=${channelId}&part=snippet%2Cid&order=date`)
-        //불러온 영상을 상태에 저장
-        setChannelVideo(videosData?.items)
-        //토큰을 상태에 저장
-        setNextPageToken(videosData?.nextPageToken)
       } catch(error) { //실패시 실행
         console.error(error)
       } finally { //요청이 실패하던 성공하던 무조건 실행되는 구문
@@ -45,15 +37,6 @@ const Channel = () => {
   }, [channelId])
   //로딩이 완료되면 isLoaded가 변수에 할당됨
   const channelPageClass = loading ? 'isLoading' : 'isLoaded';
-
-  const loadMoreVideos = async () => {if(nextPageToken){
-    const videosData = await fetchFromAPI(`search?channelId=${channelId}&part=snippet%2Cid&order=date&pageToken=${nextPageToken}`)
-    //기존 상태에 저장된 영상데이터를 그래도 구조분해할당으로 배열로 할당하고 새로 추가된 영상데이터를 구조분해할당으로 배열에 추가해 줍니다.
-    setChannelVideo(prevVideos => [...prevVideos, ...videosData.items])
-    //다음 영상이 있으면 토큰을 또한번 상태에 할당
-    setNextPageToken(videosData?.nextPageToken)
-  }
-  }
 
   return (
     <Main
@@ -89,13 +72,6 @@ const Channel = () => {
                   {channelDetail.statistics.viewCount}
                 </span>
               </div>
-            </div>
-            {/*VideoSearch 컴포넌트로 영상 표시*/}
-            <div className='channel__video video__inner search'>
-              <VideoSearch videos={channelVideo}/>
-            </div>
-            <div className='channel__more'>
-              {nextPageToken && (<button onClick={loadMoreVideos}>더보기</button>)}
             </div>
           </div>
         )}
